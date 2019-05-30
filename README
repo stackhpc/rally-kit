@@ -1,0 +1,1 @@
+Usage: python tempest-blacklist.py tempest-ironic-blacklist > tempest-blacklist

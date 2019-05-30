@@ -1,0 +1,24 @@
+
+# These tests create more than 3 servers
+^tempest\.api\.compute\.servers\.test_list_server_filters\.ListServerFiltersTestJSON: >-
+  This test creates 3 servers and we don't always have the spare capacity in the cloud
+
+# attaching arbitrary network interfaces does not work with ironic
+^tempest\.api\.compute\.servers\.test_attach_interfaces: >-
+  attaching arbitrary network interfaces does not work with ironic
+
+^tempest\.api\.compute\.servers\.test_create_server_multi_nic.ServersTestMultiNic: >-
+  physical servers cannot support an arbitrary amount of NICs
+
+^tempest\.scenario\.test_network_basic_ops\.TestNetworkBasicOps\.test_hotplug_nic: >-
+  requires multiple NICs
+
+# Not supported by ironic
+# https://github.com/openstack/nova/blob/daa2ac2287df12dfdee532d66ef97a03350ca6af/nova/virt/ironic/driver.py
+# doesn't implement:
+# https://github.com/openstack/nova/blob/c8b93fa2493dce82ef4c0b1e7a503ba9b81c2e86/nova/virt/driver.py#L433
+^tempest\.api\.compute\.admin\.test_server_diagnostics\.ServerDiagnosticsTest\.test_get_server_diagnostics: not supported by ironic
+
+# Ironic error: Cannot deploy whole disk image with swap or ephemeral size set
+# TODO: is is possible to use a partition image with tempest
+^tempest\.api\.compute\.admin\.test_create_server\.ServersWithSpecificFlavorTestJSON\.test_verify_created_server_ephemeral_disk: must use a partition image
