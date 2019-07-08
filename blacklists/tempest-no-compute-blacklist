@@ -1,0 +1,4 @@
+# creates servers in setUp method: https://github.com/openstack/tempest/blob/2df6114e44e1a0af48451a901d3d88c6c7975dd8/tempest/scenario/test_security_groups_basic_ops.py#L191
+#^tempest\.scenario\.test_security_groups_basic_ops\.TestSecurityGroupsBasicOps.*: >-
+#  creates servers in the setUp method  
+.*\[.*compute.*\]: compute tests are disabled
