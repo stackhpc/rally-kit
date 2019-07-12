@@ -1,1 +1,4 @@
 Usage: python tempest-blacklist.py tempest-ironic-blacklist > tempest-blacklist
+./tempest-tests-in-report.sh --uuid 06597b42-015b-4629-8ae5-14dfddf08f18 > blacklists/no-compute
+cat blacklists/verne/* > /tmp/skip_list
+python tempest-blacklist.py /tmp/skip_list > /tmp/skip_list2
