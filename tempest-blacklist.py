@@ -17,9 +17,14 @@ result = {}
 
 for regex, reason in regexes.items():
     for line in all_tests:
-        m = re.search(regex, line)
-        if m:
+        m = None
+        try:
+          r = re.compile(regex)
+          m = r.search(line)
+          if m:
             result[line] = reason
-
+        except re.error:
+          result[regex] = reason
+          
 yaml.dump(result, sys.stdout, default_flow_style=False)
 
