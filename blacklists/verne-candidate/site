@@ -1,0 +1,4 @@
+tempest.api.compute.servers.test_create_server.ServersTestManualDisk.test_verify_created_server_vcpus: flavor doesn't match vcpus
+tempest.api.compute.servers.test_create_server.ServersTestJSON.test_verify_created_server_vcpus: flavor doesn't match vcpus
+tempest.api.compute.servers.test_list_server_filters.ListServerFiltersTestJSON.test_list_servers_filter_by_flavor: need more than one flavor
+tempest.api.compute.servers.test_list_server_filters.ListServerFiltersTestJSON.test_list_servers_detailed_filter_by_flavor: need more than one flavor
