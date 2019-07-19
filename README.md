@@ -1,9 +1,6 @@
-===========
-Cheat sheet
-===========
+# Cheat sheet
 
-Rally installation
-==================
+## Rally installation
 
 install the dependencies:
 
@@ -16,17 +13,19 @@ install rally
 wget -q -O- https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh | bash
 ```
 
-Using rally
-===========
+ ## Using rally
 
+```
  . /home/stackhpc/rally/bin/activate
+```
 
-Setting up rally
-================
+## Setting up rally
 
 source and openstack environment file:
 
+```
 source kayobe/src/kayobe-config/etc/kolla/public-openrc.sh
+```
 
 You may need:
 
@@ -34,20 +33,21 @@ You may need:
 unset OS_CACERT
 ```
 
-Install openstack plugin
-========================
+## Install openstack plugin
 
+First activate the rally virtualenv and then:
+
+```
 pip install rally_openstack
+```
 
-Create deployment
-=================
+## Create deployment
 
 ```
 rally deployment create --fromenv --name test-environment
 ```
 
-Check a deployment
-==================
+## Check a deployment
 
 This serves as a good check to see if you have any obvious misconfiguration.
 
@@ -55,22 +55,19 @@ This serves as a good check to see if you have any obvious misconfiguration.
 rally deployment check
 ```
 
-Setting up tempest
-==================
+## Setting up tempest
 
 ```
 rally verify create-verifier --name tempest --type tempest
 ```
 
-Running tempest
-===============
+## Running tempest
 
 ```
 rally verify start
 ```
 
-Generating a report
-===================
+## Generating a report
 
 ```
 (rally) [stackhpc@bm-test-mgmt01 ~]$ mkdir ~/rally-reports
@@ -78,8 +75,7 @@ Generating a report
 (rally) [stackhpc@bm-test-mgmt01 ~]$ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
 ```
 
-Reconfiguring tempest
-=====================
+## Reconfiguring tempest
 
 Example: increase volume timeouts
 
@@ -93,22 +89,19 @@ build_timeout = 600
 (rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify configure-verifier --reconfigure --extend ~/rally-config/tempest-override.conf
 ```
 
-Known good configs
-------------------
+### Known good configs
 
 These are specific to each site and can be found in the configs subdirectory. The can be 
 used as a basis for another site but UUIDs specific to each environment must be removed.
 
 
-Running individual tests
-==============================
+## Running individual tests
 
 ```
 rally verify start --pattern tempest.api.compute.volumes.test_volume_snapshots.VolumesSnapshotsTestJSON.test_volume_snapshot_create_get_list_delete
 ```
 
-Rerunning failed tests
-======================
+## Rerunning failed tests
 ```
 (rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify list
 +--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
@@ -123,11 +116,9 @@ Rerunning failed tests
 (rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify rerun --failed --uuid 3555945e-8799-403a-be19-bfdf1f72d936
 ```
 
-Baremetal tests
-===============
+## Baremetal tests
 
-Creating a list of tests that don't need compute
-------------------------------------------------
+### Creating a list of tests that don't need compute
 
 Rationale: we want to speed up tempest runs, but booting baremetal servers must be
 done serially. If we split the tests into two groups, we can run the group that 
@@ -162,10 +153,9 @@ expand regexps:
 python tempest-blacklist.py /tmp/no-compute > blacklists/no-compute
 ```
 
-This will be used as the ``--skip-list` in the second run of rally.
+This will be used as the `--skip-list` in the second run of rally.
 
-Create skip list for a particular site
----------------------------------------
+### Create skip list for a particular site
 
 The skip lists are organised into a directory per site. Any identical files are symlinks.
 These must be combined to generate the full skip list:
@@ -180,8 +170,7 @@ expand regexps:
 python tempest-blacklist.py /tmp/skip_list > /tmp/skip_list2
 ```
 
-Custom tempest
---------------
+### Custom tempest
 
 I am currently using these patches:
 
@@ -196,13 +185,27 @@ created by rally, eg in:
 tempest.conf will need to modified to include the following:
 
 ```
+[compute]
+pre_create_hook = /home/stackhpc-will/node-count.sh
+
+
 [compute_quotas]
 cores=-1
 ram=-1
 ```
 
-Running the baremetal tests
----------------------------
+where `node-count.sh` looks like:
+
+```
+[stackhpc-will@hpc-client ~]$ cat ~/node-count.sh
+#!/bin/bash
+
+source ~/openrc.sh > /dev/null 2>&1
+result=$(~/venv-openstack/bin/openstack baremetal node list --resource-class COMPUTE_C --provision-state available --no-maintenance -f value --fields uuid | wc -l)
+[ "$result" -ge 1 ]
+```
+
+#### Running the baremetal tests
 
 You will need:
 
@@ -229,8 +232,7 @@ rally verify start --load-list ~/rally-kit/test-lists/next-test-list.txt --skip-
 
 it is important to run with concurrency==1 otherwise the test run will be unreliable.
 
-Making sure the test set doesn't change with tempest version
--------------------------------------------------------------
+### Making sure the test set doesn't change with tempest version
 
 You can use `rally-tests-in-report.sh` to generate a `--load-list`. This means that you will run the 
 same of set of tests even across tempest upgrades (where new tests may be added). 
@@ -240,3 +242,21 @@ It is recommended that you do this for:
 - the tests run with the compute service enabled
 
 This way it will be esier to compare results.
+
+# Directory structure
+
+## blacklists
+
+to be passed in as `--skip-list`:
+
+- `no-compute`: list of tests that don't need the compute service
+- `tempest-no-compute-blacklist`: for creating the no-compute blacklist
+- `tempest-ironic-blacklist`: Disable tests known not to work with ironic
+
+## expected-failures
+
+to be passed in as `x-fail-list`
+
+## custom
+
+custom tests that are not in not in a standard test suite
