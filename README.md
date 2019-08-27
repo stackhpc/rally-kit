@@ -5,7 +5,7 @@
 install the dependencies:
 
 ```
-yum install redhat-lsb-core gmp-devel libxml2-devel libxslt-devel postgresql-devel
+yum install redhat-lsb-core gmp-devel libxml2-devel libxslt-devel postgresql-devel wget
 ```
 
 install rally
