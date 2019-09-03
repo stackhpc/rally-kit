@@ -136,7 +136,7 @@ use the config/production directory.
 Run all tests, using the vm-fixed-network blacklist.
 
 ```
-(rally) $ rally verify start --skip-list blacklists/vm-fixed-network --xfail-list xfail-lists/vm-fixed-network
+(rally) $ rally verify start --skip-list blacklists/vm-fixed-network
 ```
 
 Generate a report.
