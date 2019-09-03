@@ -1,4 +1,7 @@
-# Cheat sheet
+# Rally Kit
+
+This repo provides some tools and configuration for using Rally to test
+hpcDIRECT.
 
 ## Rally installation
 
@@ -61,49 +64,45 @@ rally deployment check
 rally verify create-verifier --name tempest --type tempest
 ```
 
+Optionally, use the `--source` and `--version` arguments to install tempest from
+a downstream repo.
+
+## Configuring tempest
+
+A number of tempest configurations for different scenarios are provided under
+the config/ directory.
+
+For example, to use the VM fixed network configuration:
+
+```
+(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
+```
+
 ## Running tempest
+
+To run all tests:
 
 ```
 rally verify start
 ```
 
-## Generating a report
+### Generating a report
 
 ```
-(rally) [stackhpc@bm-test-mgmt01 ~]$ mkdir ~/rally-reports
+(rally) $ mkdir ~/rally-reports
 
-(rally) [stackhpc@bm-test-mgmt01 ~]$ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
 ```
 
-## Reconfiguring tempest
-
-Example: increase volume timeouts
+### Running individual tests
 
 ```
-(rally) [stackhpc@bm-test-mgmt01 rally-config]$ cat ~/rally-config/tempest-override.conf
-[volume]
-build_timeout = 600
+(rally) $ rally verify start --pattern tempest.api.compute.volumes.test_volume_snapshots.VolumesSnapshotsTestJSON.test_volume_snapshot_create_get_list_delete
 ```
 
+### Rerunning failed tests
 ```
-(rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify configure-verifier --reconfigure --extend ~/rally-config/tempest-override.conf
-```
-
-### Known good configs
-
-These are specific to each site and can be found in the configs subdirectory. The can be 
-used as a basis for another site but UUIDs specific to each environment must be removed.
-
-
-## Running individual tests
-
-```
-rally verify start --pattern tempest.api.compute.volumes.test_volume_snapshots.VolumesSnapshotsTestJSON.test_volume_snapshot_create_get_list_delete
-```
-
-## Rerunning failed tests
-```
-(rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify list
+(rally) $ rally verify list
 +--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
 | UUID                                 | Tags | Verifier name | Deployment name  | Started at          | Finished at         | Duration | Status   |
 +--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
@@ -113,10 +112,84 @@ rally verify start --pattern tempest.api.compute.volumes.test_volume_snapshots.V
 | 5ac158fa-ef6f-46ac-b091-fe1ec444d3c8 | -    | tempest       | test-environment | 2019-07-15T13:23:39 | 2019-07-15T13:24:28 | 0:00:49  | finished |
 +--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
 
-(rally) [stackhpc@bm-test-mgmt01 rally-config]$ rally verify rerun --failed --uuid 3555945e-8799-403a-be19-bfdf1f72d936
+(rally) $ rally verify rerun --failed --uuid 3555945e-8799-403a-be19-bfdf1f72d936
 ```
 
-## Baremetal tests
+## Test Configurations
+
+A number of different test configurations have been defined, to test different
+aspects of the system.
+
+### Virtual machine fixed network
+
+This configuration tests virtual machines, accessed via a fixed network rather
+than a floating IP.
+
+Create a new verifier and ensure that it is configured correctly. In production
+use the config/production directory.
+
+```
+(rally) $ rally verify create-verifier --name tempest-vm --type tempest --source https://github.com/VerneGlobal/tempest --version vm
+(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
+```
+
+Run all tests, using the vm-fixed-network blacklist.
+
+```
+(rally) $ rally verify start --skip-list blacklists/vm-fixed-network --xfail-list xfail-lists/vm-fixed-network
+```
+
+Generate a report.
+
+```
+(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+```
+
+### Bare metal fixed network
+
+This configuration tests bare metal, accessed via a fixed network rather than a
+floating IP.
+
+Create a new verifier and ensure that it is configured correctly. In
+production, use the config/production directory. For bare metal, we need to use
+a fork of the tempest repo with some changes to support rate limiting
+deployments.
+
+```
+(rally) $ rally verify create-verifier --name tempest-bare-metal --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/bare-metal-fixed-network.conf
+```
+
+For these tests we use a pre-create hook script that waits for sufficient bare
+metal compute resources to become available before creating a server. This
+script should be copied to /tmp/rally-node-count.sh:
+
+```
+cp tools/rally-node-count.sh /tmp/rally-node-count.sh
+```
+
+You will need to export some environment variables for this script:
+```
+export RALLY_NODE_COUNT_VENV=/path/to/virtualenv
+export RALLY_NODE_COUNT_OPENRC=/path/to/openrc.sh
+export RALLY_NODE_COUNT_RESOURCE_CLASS=Compute_1
+```
+
+We are using a list of tests from Refstack, with all non-compute tests skipped.
+We use a concurrency of 1 to ensure that there is no contention for the bare
+metal nodes.  Run all tests:
+
+```
+(rally) $ rally verify start --load-list test-lists/next-test-list.txt --skip-list blacklists/bare-metal-fixed-network --concurrency 1
+```
+
+Generate a report.
+
+```
+(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+```
+
+## Background: Generating lists of bare metal tests
 
 ### Creating a list of tests that don't need compute
 
@@ -131,132 +204,52 @@ Run the tempest smoke tests with the compute service disabled, e.g in tempest.co
 nova = false
 ```
 
-you must also start the run with the `blacklists/tempest-no-compute-blacklist` blacklist.
-This contains a series of regexps that should prevent any tests that use the compute 
-service from running.
+you must also start the run with the
+`blacklists/helpers/tempest-no-compute-blacklist` blacklist.  This contains a
+series of regexps that should prevent any tests that use the compute service
+from running.
 
 The rally invocation will look like:
 
 ```
-rally verify start --skip-list ~/blacklists/tempest-no-compute-blacklist
+rally verify start --skip-list blacklists/helpers/tempest-no-compute-blacklist
 ```
 
 Grab the list of tests from that run:
 
 ```
-./tempest-tests-in-report.sh --uuid 06597b42-015b-4629-8ae5-14dfddf08f18 | ./tempest-tests-to-blacklist > /tmp/no-compute
+./tools/tempest-tests-in-report.sh --uuid 06597b42-015b-4629-8ae5-14dfddf08f18 | ./tools/tempest-tests-to-blacklist > /tmp/no-compute
 ```
 
 expand regexps:
 
 ```
-python tempest-blacklist.py /tmp/no-compute > blacklists/no-compute
+python tools/tempest-blacklist.py /tmp/no-compute > blacklists/helpers/no-compute
 ```
 
 This will be used as the `--skip-list` in the second run of rally.
 
-### Create skip list for a particular site
+### Create skip list for bare metal fixed network tests
 
-The skip lists are organised into a directory per site. Any identical files are symlinks.
-These must be combined to generate the full skip list:
-
+Concatenate a bunch of blacklists together:
 ```
-cat blacklists/verne/* > /tmp/skip_list
+cat blacklists/helpers/{no-compute,site,tempest-ironic-blacklist} > /tmp/skip_list
 ```
 
 expand regexps:
 
 ```
-python tempest-blacklist.py /tmp/skip_list > /tmp/skip_list2
+python tools/tempest-blacklist.py /tmp/skip_list > blacklists/bare-metal-fixed-network
 ```
-
-### Custom tempest
-
-I am currently using these patches:
-
-- https://review.opendev.org/#/c/656534/
-- https://github.com/jovial/tempest/commits/feature/ironic_wait
-
-to use the customisations just merge those changes into the tempest repo
-created by rally, eg in:
-
-`~/.rally/verification/verifier-65d56aef-dc91-4442-abc6-851c858ade21/repo/`
-
-tempest.conf will need to modified to include the following:
-
-```
-[compute]
-pre_create_hook = /home/stackhpc-will/node-count.sh
-
-
-[compute_quotas]
-cores=-1
-ram=-1
-```
-
-where `node-count.sh` looks like:
-
-```
-[stackhpc-will@hpc-client ~]$ cat ~/node-count.sh
-#!/bin/bash
-
-source ~/openrc.sh > /dev/null 2>&1
-result=$(~/venv-openstack/bin/openstack baremetal node list --resource-class COMPUTE_C --provision-state available --no-maintenance -f value --fields uuid | wc -l)
-[ "$result" -ge 1 ]
-```
-
-#### Running the baremetal tests
-
-You will need:
-
-- the list of tests from the previous run no with compute. You should
-  combine these with the any other skips lists, see: `Create skip list for project`
-- a custom version of tempest that waits for compute resources to become available.
-  This is especially important if you have enabled cleaning on the nodes.
-- the compute service to be renabled in tempest.conf
-
-We currently use the refestack list of tests as a known good subset of tests that doesn't take 
-to long to run, to obtian these use:
-
-```
-wget "https://refstack.openstack.org/api/v1/guidelines/next/tests?target=compute&type=required&alias=true&flag=false" -O ~/rally-kit/test-lists/next-test-list.txt
-```
-
-see: https://refstack.openstack.org/ for an updated list of tests.
-
-the rally invocation will look like:
-
-```
-rally verify start --load-list ~/rally-kit/test-lists/next-test-list.txt --skip-list /tmp/skip_list2 --xfail-list ~/rally-kit/expected-failures/verne --concurrency 1
-```
-
-it is important to run with concurrency==1 otherwise the test run will be unreliable.
 
 ### Making sure the test set doesn't change with tempest version
 
-You can use `rally-tests-in-report.sh` to generate a `--load-list`. This means that you will run the 
-same of set of tests even across tempest upgrades (where new tests may be added). 
-It is recommended that you do this for:
+You can use `tools/tempest-tests-in-report.sh` to generate a `--load-list`.
+This means that you will run the same of set of tests even across tempest
+upgrades (where new tests may be added).  It is recommended that you do this
+for:
 
 - the tests run without the compute service enabled
 - the tests run with the compute service enabled
 
-This way it will be esier to compare results.
-
-# Directory structure
-
-## blacklists
-
-to be passed in as `--skip-list`:
-
-- `no-compute`: list of tests that don't need the compute service
-- `tempest-no-compute-blacklist`: for creating the no-compute blacklist
-- `tempest-ironic-blacklist`: Disable tests known not to work with ironic
-
-## expected-failures
-
-to be passed in as `x-fail-list`
-
-## custom
-
-custom tests that are not in not in a standard test suite
+This way it will be easier to compare results.
