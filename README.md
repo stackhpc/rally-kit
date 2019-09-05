@@ -129,14 +129,51 @@ Create a new verifier and ensure that it is configured correctly. In production
 use the config/production directory.
 
 ```
-(rally) $ rally verify create-verifier --name tempest-vm --type tempest --source https://github.com/VerneGlobal/tempest --version vm
+(rally) $ rally verify create-verifier --name tempest-vm-fixed-network --type tempest --source https://github.com/VerneGlobal/tempest --version vm
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
+```
+
+Alternatively, use an existing verifier.
+
+```
+(rally) $ rally verify use-verifier --id tempest-vm-fixed-network
 ```
 
 Run all tests, using the vm-fixed-network blacklist.
 
 ```
 (rally) $ rally verify start --skip-list blacklists/vm-fixed-network
+```
+
+Generate a report.
+
+```
+(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+```
+
+### Virtual machine floating IPs
+
+This configuration tests virtual machines, accessed via a floating IP rather
+than a fixed network.
+
+Create a new verifier and ensure that it is configured correctly. In production
+use the config/production directory.
+
+```
+(rally) $ rally verify create-verifier --name tempest-vm-floating-ip --type tempest --source https://github.com/VerneGlobal/tempest --version vm
+(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-floating-ip.conf
+```
+
+Alternatively, use an existing verifier.
+
+```
+(rally) $ rally verify use-verifier --id tempest-vm-floating-ip
+```
+
+Run all tests, using the vm-fixed-network blacklist.
+
+```
+(rally) $ rally verify start --skip-list blacklists/vm-floating-ip
 ```
 
 Generate a report.
@@ -156,8 +193,14 @@ a fork of the tempest repo with some changes to support rate limiting
 deployments.
 
 ```
-(rally) $ rally verify create-verifier --name tempest-bare-metal --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+(rally) $ rally verify create-verifier --name tempest-bare-metal-fixed-ip --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/bare-metal-fixed-network.conf
+```
+
+Alternatively, use an existing verifier.
+
+```
+(rally) $ rally verify use-verifier --id tempest-bare-metal-fixed-ip
 ```
 
 For these tests we use a pre-create hook script that waits for sufficient bare
