@@ -1,0 +1,10 @@
+tempest.api.compute.admin.test_aggregates.AggregatesAdminTestJSON.test_aggregate_add_host_create_server_with_az: >-
+  Only a single host
+tempest.api.identity.admin.v3.test_groups.GroupsV3TestJSON.test_list_user_groups: >-
+  custom keystone policy
+tempest.api.identity.admin.v3.test_tokens.TokensV3TestJSON.test_rescope_token: >-
+  custom keystone policy
+tempest.api.identity.admin.v3.test_users.UsersV3TestJSON.test_list_user_projects: >-
+  custom keystone policy
+tempest.api.identity.v3.test_domains.DefaultDomainTestJSON.test_default_domain_exists: >-
+  custom keystone policy
