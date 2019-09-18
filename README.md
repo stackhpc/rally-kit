@@ -232,6 +232,55 @@ Generate a report.
 (rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
 ```
 
+### VM & Bare metal floating IP
+
+This configuration tests mixed VM and bare metal, accessed via a floating IP
+rather than a fixed network.
+
+Create a new verifier and ensure that it is configured correctly. In
+production, use the config/production directory. For bare metal, we need to use
+a fork of the tempest repo with some changes to support rate limiting
+deployments.
+
+```
+(rally) $ rally verify create-verifier --name tempest-vm-bare-metal-floating-ip --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-bare-metal-floating-ip.conf
+```
+
+Alternatively, use an existing verifier.
+
+```
+(rally) $ rally verify use-verifier --id tempest-vm-bare-metal-floating-ip
+```
+
+For these tests we use a pre-create hook script that waits for sufficient bare
+metal compute resources to become available before creating a server. This
+script should be copied to /tmp/rally-node-count.sh:
+
+```
+cp tools/rally-node-count.sh /tmp/rally-node-count.sh
+```
+
+You will need to export some environment variables for this script:
+```
+export RALLY_NODE_COUNT_VENV=/path/to/virtualenv
+export RALLY_NODE_COUNT_OPENRC=/path/to/openrc.sh
+export RALLY_NODE_COUNT_RESOURCE_CLASS=Compute_1
+```
+
+We are using a test to check connectivity between VMs and bare metal on the
+same network.  To run it:
+
+```
+(rally) $ rally verify start --pattern tempest.scenario.test_network_basic_ops.TestNetworkBasicOps.test_connectivity_between_different_flavors
+```
+
+Generate a report.
+
+```
+(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+```
+
 ## Background: Generating lists of bare metal tests
 
 ### Creating a list of tests that don't need compute
