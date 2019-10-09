@@ -129,7 +129,7 @@ Create a new verifier and ensure that it is configured correctly. In production
 use the config/production directory.
 
 ```
-(rally) $ rally verify create-verifier --name tempest-vm-fixed-network --type tempest --source https://github.com/VerneGlobal/tempest --version vm
+(rally) $ rally verify create-verifier --name tempest-vm-fixed-network --type tempest
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
 ```
 
@@ -160,7 +160,7 @@ Create a new verifier and ensure that it is configured correctly. In production
 use the config/production directory.
 
 ```
-(rally) $ rally verify create-verifier --name tempest-vm-floating-ip --type tempest --source https://github.com/VerneGlobal/tempest --version vm
+(rally) $ rally verify create-verifier --name tempest-vm-floating-ip --type tempest
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-floating-ip.conf
 ```
 
