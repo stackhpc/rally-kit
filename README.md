@@ -5,13 +5,14 @@ hpcDIRECT.
 
 ## Rally installation
 
-install the dependencies:
+Install the dependencies:
 
 ```
 yum install redhat-lsb-core gmp-devel libxml2-devel libxslt-devel postgresql-devel wget
 ```
 
-install rally
+Install rally. Note that this should not be performed at the top level of a git
+repository, or it will confuse the script.
 ```
 wget -q -O- https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh | bash
 ```
@@ -19,12 +20,12 @@ wget -q -O- https://raw.githubusercontent.com/openstack/rally/master/install_ral
  ## Using rally
 
 ```
- . /home/stackhpc/rally/bin/activate
+ . ~/rally/bin/activate
 ```
 
 ## Setting up rally
 
-source and openstack environment file:
+source an openstack environment file:
 
 ```
 source kayobe/src/kayobe-config/etc/kolla/public-openrc.sh
@@ -72,7 +73,8 @@ a downstream repo.
 A number of tempest configurations for different scenarios are provided under
 the config/ directory.
 
-For example, to use the VM fixed network configuration:
+For example, to use the VM fixed network configuration for the candidate
+environment:
 
 ```
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
@@ -130,7 +132,16 @@ use the config/production directory.
 
 ```
 (rally) $ rally verify create-verifier --name tempest-vm-fixed-network --type tempest
+```
+
+In candidate:
+```
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
+```
+
+In production:
+```
+(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-fixed-network.conf
 ```
 
 Alternatively, use an existing verifier.
@@ -161,7 +172,16 @@ use the config/production directory.
 
 ```
 (rally) $ rally verify create-verifier --name tempest-vm-floating-ip --type tempest
+```
+
+In candidate:
+```
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-floating-ip.conf
+```
+
+In production:
+```
+(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-floating-ip.conf
 ```
 
 Alternatively, use an existing verifier.
@@ -194,7 +214,16 @@ deployments.
 
 ```
 (rally) $ rally verify create-verifier --name tempest-bare-metal-fixed-ip --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+```
+
+In candidate:
+```
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/bare-metal-fixed-network.conf
+```
+
+In production:
+```
+(rally) $ rally verify configure-verifier --reconfigure --extend config/production/bare-metal-fixed-network.conf
 ```
 
 Alternatively, use an existing verifier.
@@ -244,7 +273,16 @@ deployments.
 
 ```
 (rally) $ rally verify create-verifier --name tempest-vm-bare-metal-floating-ip --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+```
+
+In candidate:
+```
 (rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-bare-metal-floating-ip.conf
+```
+
+In production:
+```
+(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-bare-metal-floating-ip.conf
 ```
 
 Alternatively, use an existing verifier.
