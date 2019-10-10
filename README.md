@@ -8,7 +8,7 @@ hpcDIRECT.
 Install the dependencies:
 
 ```
-yum install redhat-lsb-core gmp-devel libxml2-devel libxslt-devel postgresql-devel wget
+yum install redhat-lsb-core gmp-devel libxml2-devel libxslt-devel postgresql-devel wget crudini
 ```
 
 Install rally. Note that this should not be performed at the top level of a git
@@ -16,6 +16,12 @@ repository, or it will confuse the script.
 ```
 wget -q -O- https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh | bash
 ```
+
+Modify the rally configuration to increase the client timeout to 300 seconds.
+```
+crudini --set ~/rally/etc/rally/rally.conf DEFAULT openstack_client_http_timeout 300
+```
+
 
  ## Using rally
 
