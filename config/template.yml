@@ -1,0 +1,8 @@
+---
+
+- hosts: localhost
+  vars:
+    tt_output_file: /tmp/test3
+  tasks:
+    - include_role:
+        name: stackhpc.tempest-template
