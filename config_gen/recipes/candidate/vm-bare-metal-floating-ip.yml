@@ -1,0 +1,20 @@
+---
+tt_config_files:
+  - "{{ playbook_dir }}/elements/base.conf.j2"
+  - "{{ playbook_dir }}/elements/baremetal.conf.j2"
+  - "{{ playbook_dir }}/elements/centos.conf.j2"
+
+# base.conf.j2
+# CentOS-7.5-OFED4.3-OpenHPC
+image_ref: 76f2819f-a5b1-43a4-9c9c-1896e6580967
+image_ref_alt: "{{ image_ref }}"
+
+# compute_1
+flavor_ref: 1
+# # VM: m1.small. Can't use m1.tiny as the disk is too small for CentOS.
+flavor_ref_alt: ce8bc5f1-16c1-4a4d-b323-24bd6488955e
+
+# baremetal.conf.j2
+baremetal_pre_create_hook: /tmp/rally-node-count.sh
+
+tt_output_file: "{{ playbook_dir }}/../config/candidate/vm-bare-metal-floating-ip.conf"

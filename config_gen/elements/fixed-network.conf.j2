@@ -2,10 +2,13 @@
 #NOTE(wszumski): needed to use fixed_network_name with dynamic creds
 create_isolated_networks = False
 connect_method = fixed
-network_for_ssh = client-provider
+network_for_ssh = "{{ fixed_network }}"
 
 [compute]
-fixed_network_name = client-provider 
+fixed_network_name = "{{ fixed_network }}"
+
+[validation]
+connect_method = fixed
 
 
 

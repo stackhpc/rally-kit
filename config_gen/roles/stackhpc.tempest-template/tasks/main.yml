@@ -1,0 +1,19 @@
+---
+# tasks file for tempest-template
+
+- name: fail if tt_output_file unset
+  fail:
+    msg: you must set tt_output_file
+  when: not tt_output_file
+
+- name: fail if config file missing
+  fail:
+    msg: "the file: {{ item }}, does not exist."
+  when: not item | exists
+  with_items: "{{ tt_config_files }}"
+
+- name: merge_configs
+  merge_configs:
+    sources: "{{ tt_config_files }}"
+    dest: "{{ tt_output_file }}"
+    mode: "{{ tt_mode }}"

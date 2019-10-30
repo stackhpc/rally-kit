@@ -13,7 +13,7 @@
 build_timeout = 1800
 
 # Use a pre-create hook script to ensure enough bare metal nodes are available.
-pre_create_hook = /tmp/rally-node-count.sh
+pre_create_hook = {{ baremetal_pre_create_hook }}
 
 [compute-feature-enabled]
 # NOTE(wszumski): features need for ironic disabled based on https://docs.openstack.org/nova/rocky/user/support-matrix.html
@@ -186,11 +186,9 @@ attach_encrypted_volume = false
 
 [service_available]
 # So that we can run with higher concurrency
-# nova = true
-
-[service-clients]
-# workaround NGS timeouts in create_bulk_networks
-http_timeout = 600
+{% if enable_nova is defined %}
+nova = "{{ enable_nova }}"
+{% endif %}
 
 [validation]
 # Timeout in seconds to wait for ping to succeed. (integer value)

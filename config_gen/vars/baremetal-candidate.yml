@@ -1,7 +1,0 @@
-
-tt_config_files:
-  - "{{ playbook_dir }}/elements/base.conf.j2"
-  - "{{ playbook_dir }}/elements/baremetal.conf.j2"
-  - "{{ playbook_dir }}/elements/centos.conf.j2"
-  - "{{ playbook_dir }}/elements/fixed-network.conf.j2"
-

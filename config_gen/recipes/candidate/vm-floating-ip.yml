@@ -1,0 +1,23 @@
+---
+tt_config_files:
+  - "{{ playbook_dir }}/elements/base.conf.j2"
+  - "{{ playbook_dir }}/elements/vm.conf.j2"
+  - "{{ playbook_dir }}/elements/single-hypervisor.conf.j2"
+  - "{{ playbook_dir }}/elements/openstack-version-rocky.conf.j2"
+
+# base.conf.j2
+# Cirros 0.4.0. Can't use CentOS, as it does not allow SSH password access,
+# which is used in some tests.
+image_ref: 9df14bb0-bf03-4665-bea3-09f3ed758d88
+image_ref_alt: "{{ image_ref }}"
+
+# m1.tiny
+flavor_ref: 9ed39429-4b73-4b95-b71b-59d050e096d7
+# m1.small
+flavor_ref_alt: ce8bc5f1-16c1-4a4d-b323-24bd6488955e
+
+# fixed-network.conf.j2
+fixed_network: client-provider
+
+tt_output_file: "{{ playbook_dir }}/../config/candidate/vm-floating-ip.conf"
+
