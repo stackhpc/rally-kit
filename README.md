@@ -79,11 +79,28 @@ a downstream repo.
 A number of tempest configurations for different scenarios are provided under
 the config/ directory.
 
-For example, to use the VM fixed network configuration for the candidate
+For example, to use the baremetal fixed network configuration for the alt1
 environment:
 
 ```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
+(rally) $ rally verify configure-verifier --reconfigure --extend config/alt1/baremetal-fixed-network.conf
+```
+
+The configurations have been generated using [shakespeare](https://github.com/stackhpc/shakespeare).
+Shakespeare provides a number of configurable elements. By editing this elements centrally, we can
+avoid the need to sync these changes into every repository.
+
+The following series of steps will generate the config files for alt1 and production.
+```
+virtualenv --system-site-packages ~/venv-shakes
+source ~/venv-shakes/bin/activate
+pip install -r requirements.txt 
+git clone https://github.com/stackhpc/tempest-recipes.git
+cd shakespeare/
+mkdir -p  ../config/alt1
+mkdir -p  ../config/production
+ansible-playbook template.yml -e @tempest-recipes/alt1/baremetal-fix-ip.yml 
+ansible-playbook template.yml -e @tempest-recipes/production/baremetal-fix-ip.yml 
 ```
 
 ## Running tempest
@@ -111,14 +128,14 @@ rally verify start
 ### Rerunning failed tests
 ```
 (rally) $ rally verify list
-+--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
++--------------------------------------|------|---------------|------------------|---------------------|---------------------|----------|----------+
 | UUID                                 | Tags | Verifier name | Deployment name  | Started at          | Finished at         | Duration | Status   |
-+--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
++--------------------------------------|------|---------------|------------------|---------------------|---------------------|----------|----------+
 | 3555945e-8799-403a-be19-bfdf1f72d936 | -    | tempest       | test-environment | 2019-07-12T15:53:07 | 2019-07-12T21:17:41 | 5:24:34  | failed   |
 | da4a74ae-4a5d-4c47-88ce-7082ed8dd2c9 | -    | tempest       | test-environment | 2019-07-15T11:04:12 | 2019-07-15T11:05:04 | 0:00:52  | failed   |
 | aa8d325c-be1c-4938-86e9-a49c246dda00 | -    | tempest       | test-environment | 2019-07-15T11:19:14 | 2019-07-15T11:39:43 | 0:20:29  | failed   |
 | 5ac158fa-ef6f-46ac-b091-fe1ec444d3c8 | -    | tempest       | test-environment | 2019-07-15T13:23:39 | 2019-07-15T13:24:28 | 0:00:49  | finished |
-+--------------------------------------+------+---------------+------------------+---------------------+---------------------+----------+----------+
++--------------------------------------|------|---------------|------------------|---------------------|---------------------|----------|----------+
 
 (rally) $ rally verify rerun --failed --uuid 3555945e-8799-403a-be19-bfdf1f72d936
 ```
@@ -127,86 +144,6 @@ rally verify start
 
 A number of different test configurations have been defined, to test different
 aspects of the system.
-
-### Virtual machine fixed network
-
-This configuration tests virtual machines, accessed via a fixed network rather
-than a floating IP.
-
-Create a new verifier and ensure that it is configured correctly. In production
-use the config/production directory.
-
-```
-(rally) $ rally verify create-verifier --name tempest-vm-fixed-network --type tempest
-```
-
-In candidate:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-fixed-network.conf
-```
-
-In production:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-fixed-network.conf
-```
-
-Alternatively, use an existing verifier.
-
-```
-(rally) $ rally verify use-verifier --id tempest-vm-fixed-network
-```
-
-Run all tests, using the vm-fixed-network blacklist.
-
-```
-(rally) $ rally verify start --skip-list blacklists/vm-fixed-network
-```
-
-Generate a report.
-
-```
-(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
-```
-
-### Virtual machine floating IPs
-
-This configuration tests virtual machines, accessed via a floating IP rather
-than a fixed network.
-
-Create a new verifier and ensure that it is configured correctly. In production
-use the config/production directory.
-
-```
-(rally) $ rally verify create-verifier --name tempest-vm-floating-ip --type tempest
-```
-
-In candidate:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-floating-ip.conf
-```
-
-In production:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-floating-ip.conf
-```
-
-Alternatively, use an existing verifier.
-
-```
-(rally) $ rally verify use-verifier --id tempest-vm-floating-ip
-```
-
-Run all tests, using the vm-fixed-network blacklist.
-
-```
-(rally) $ rally verify start --skip-list blacklists/vm-floating-ip
-```
-
-Generate a report.
-
-```
-(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
-```
 
 ### Bare metal fixed network
 
@@ -224,7 +161,7 @@ deployments.
 
 In candidate:
 ```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/bare-metal-fixed-network.conf
+(rally) $ rally verify configure-verifier --reconfigure --extend config/alt1/bare-metal-fixed-network.conf
 ```
 
 In production:
@@ -267,62 +204,31 @@ Generate a report.
 (rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
 ```
 
-### VM & Bare metal floating IP
-
-This configuration tests mixed VM and bare metal, accessed via a floating IP
-rather than a fixed network.
-
-Create a new verifier and ensure that it is configured correctly. In
-production, use the config/production directory. For bare metal, we need to use
-a fork of the tempest repo with some changes to support rate limiting
-deployments.
+## Monasca testing
 
 ```
-(rally) $ rally verify create-verifier --name tempest-vm-bare-metal-floating-ip --type tempest --source https://github.com/VerneGlobal/tempest --version bare-metal
+[will@dev-director rally-kit]$ source ~/.rally/verification/verifier-3fc44216-a738-4537-8bb6-3f29f03f691f/.venv/bin/activate
+(.venv) [will@dev-director rally-kit]$ pip install monasca-tempest-plugin
 ```
 
-In candidate:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/candidate/vm-bare-metal-floating-ip.conf
-```
+Where `3fc44216-a738-4537-8bb6-3f29f03f691f`is the id of the verifier given with `rally verify list-verifiers`.
 
-In production:
-```
-(rally) $ rally verify configure-verifier --reconfigure --extend config/production/vm-bare-metal-floating-ip.conf
-```
-
-Alternatively, use an existing verifier.
+Generating a monasca test list:
 
 ```
-(rally) $ rally verify use-verifier --id tempest-vm-bare-metal-floating-ip
+rally verify list-verifier-tests --pattern '.*monasca.*' > test-lists/monasca
 ```
 
-For these tests we use a pre-create hook script that waits for sufficient bare
-metal compute resources to become available before creating a server. This
-script should be copied to /tmp/rally-node-count.sh:
+Run the tests with:
 
 ```
-cp tools/rally-node-count.sh /tmp/rally-node-count.sh
+rally verify start --load-list test-lists/monasca
 ```
 
-You will need to export some environment variables for this script:
-```
-export RALLY_NODE_COUNT_VENV=/path/to/virtualenv
-export RALLY_NODE_COUNT_OPENRC=/path/to/openrc.sh
-export RALLY_NODE_COUNT_RESOURCE_CLASS=Compute_1
-```
-
-We are using a test to check connectivity between VMs and bare metal on the
-same network.  To run it:
+or by using a regex:
 
 ```
-(rally) $ rally verify start --pattern tempest.scenario.test_network_basic_ops.TestNetworkBasicOps.test_connectivity_between_different_flavors
-```
-
-Generate a report.
-
-```
-(rally) $ rally verify report --type html --to ~/rally-reports/$(date -d "today" +"%Y%m%d%H%M").html
+rally verify start --pattern monasca_tempest_tests.tests.api
 ```
 
 ## Background: Generating lists of bare metal tests
