@@ -92,11 +92,12 @@ avoid the need to sync these changes into every repository.
 
 The following series of steps will generate the config files for alt1 and production.
 ```
+git clone git@github.com:stackhpc/shakespeare.git
+cd shakespeare/
 virtualenv --system-site-packages ~/venv-shakes
 source ~/venv-shakes/bin/activate
 pip install -r requirements.txt 
 git clone https://github.com/stackhpc/tempest-recipes.git
-cd shakespeare/
 mkdir -p  ../config/alt1
 mkdir -p  ../config/production
 ansible-playbook template.yml -e @tempest-recipes/alt1/baremetal-fix-ip.yml 
